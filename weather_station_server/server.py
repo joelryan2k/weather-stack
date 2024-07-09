@@ -1,7 +1,7 @@
 import time
 
 from flask import Flask, jsonify, request
-from prometheus_client import make_wsgi_app, Counter, Histogram
+from prometheus_client import make_wsgi_app, Counter, Histogram, Gauge
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
 
 app = Flask(__name__)
@@ -18,6 +18,10 @@ REQUEST_LATENCY = Histogram(
     'Application Request Latency',
     ['method', 'endpoint']
 )
+OUTDOOR_TEMPF = Gauge(
+    'station_outdoor_temp_f',
+    'Outdoor Temperature, F',
+)
 @app.route('/')
 def hello():
     start_time = time.time()
@@ -25,3 +29,10 @@ def hello():
     response = jsonify(message='Hello, world!')
     REQUEST_LATENCY.labels('GET', '/').observe(time.time() - start_time)
     return response
+
+@app.route('/data/report/')
+def report():
+    print(request.args)
+    tempf = float(request.args.get('tempf'))
+    OUTDOOR_TEMPF.set(tempf)
+    return 'ok'
