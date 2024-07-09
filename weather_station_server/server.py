@@ -22,6 +22,10 @@ OUTDOOR_TEMPF = Gauge(
     'station_outdoor_temp_f',
     'Outdoor Temperature, F',
 )
+WINDSPEED_MPH = Gauge(
+    'station_outdoor_windspeed_mph',
+    'Wind Speed, MPH',
+)
 @app.route('/')
 def hello():
     start_time = time.time()
@@ -35,4 +39,6 @@ def report():
     print(request.args)
     tempf = float(request.args.get('tempf'))
     OUTDOOR_TEMPF.set(tempf)
+    windspeedmph = float(request.args.get('windspeedmph'))
+    WINDSPEED_MPH.set(windspeedmph)
     return 'ok'
