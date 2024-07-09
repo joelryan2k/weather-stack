@@ -18,14 +18,19 @@ REQUEST_LATENCY = Histogram(
     'Application Request Latency',
     ['method', 'endpoint']
 )
-OUTDOOR_TEMPF = Gauge(
-    'station_outdoor_temp_f',
-    'Outdoor Temperature, F',
-)
-WINDSPEED_MPH = Gauge(
-    'station_outdoor_windspeed_mph',
-    'Wind Speed, MPH',
-)
+
+GAUGE_DEFS = [
+    ('station_outdoor_temp_f', 'Outdoor Temperature, F', 'tempf'),
+    ('station_outdoor_windspeed_mph', 'Wind Speed, MPH', 'windspeedmph'),
+]
+
+GAUGES = {
+    ws_name: Gauge(
+        prom_name,
+        prom_desc,
+    ) for prom_name, prom_desc, ws_name in GAUGE_DEFS
+}
+
 @app.route('/')
 def hello():
     start_time = time.time()
@@ -36,9 +41,9 @@ def hello():
 
 @app.route('/data/report/')
 def report():
-    print(request.args)
-    tempf = float(request.args.get('tempf'))
-    OUTDOOR_TEMPF.set(tempf)
-    windspeedmph = float(request.args.get('windspeedmph'))
-    WINDSPEED_MPH.set(windspeedmph)
+    for ws_name, gauge in GAUGES.items():
+        print(f'reading {ws_name}')
+        value = float(request.args.get(ws_name))
+        gauge.set(value)
+
     return 'ok'
